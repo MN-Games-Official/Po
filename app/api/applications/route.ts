@@ -43,10 +43,10 @@ export async function POST(request: Request) {
       data: {
         userId: user.id,
         name: body.name,
-        description: body.description,
+        description: body.description || null,
         groupId: body.group_id,
         targetRole: body.target_role,
-        passScore: body.pass_score,
+        passScore: Math.floor(body.pass_score),
         primaryColor: body.style.primary_color,
         secondaryColor: body.style.secondary_color,
         questionsJson: JSON.stringify(body.questions),

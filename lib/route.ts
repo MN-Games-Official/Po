@@ -12,8 +12,14 @@ export function fail(
   status = 400,
   details?: unknown,
 ) {
-  if (status >= 500) {
-    logger.error(error, details as Record<string, unknown> | undefined);
+  // Log all errors for debugging
+  if (details) {
+    const detailsObj = details instanceof Error 
+      ? { message: details.message, stack: details.stack }
+      : details;
+    logger.error(error, detailsObj as Record<string, unknown> | undefined);
+  } else {
+    logger.error(error, { code, status });
   }
 
   return NextResponse.json({ success: false, error, code }, { status });
