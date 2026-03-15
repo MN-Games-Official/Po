@@ -1,0 +1,144 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               Int                  @id @default(autoincrement())
+  email            String               @unique
+  username         String               @unique
+  passwordHash     String               @map("password_hash")
+  fullName         String?              @map("full_name")
+  avatarUrl        String?              @map("avatar_url")
+  emailVerified    Boolean              @default(false) @map("email_verified")
+  emailVerifiedAt  DateTime?            @map("email_verified_at")
+  createdAt        DateTime             @default(now()) @map("created_at")
+  updatedAt        DateTime             @updatedAt @map("updated_at")
+  applications     Application[]
+  rankCenters      RankCenter[]
+  apiKeys          ApiKey[]
+  passwordResets   PasswordReset[]
+  verifications    EmailVerification[]
+  refreshTokens    RefreshToken[]
+
+  @@map("users")
+}
+
+model ApiKey {
+  id           Int       @id @default(autoincrement())
+  userId       Int       @map("user_id")
+  type         String
+  name         String?
+  encryptedKey String    @map("encrypted_key")
+  keyPrefix    String    @map("key_prefix")
+  scopesJson   String?   @map("scopes_json")
+  expiresAt    DateTime? @map("expires_at")
+  lastUsed     DateTime? @map("last_used")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  isActive     Boolean   @default(true) @map("is_active")
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("api_keys")
+}
+
+model Application {
+  id             String                  @id @default(uuid())
+  userId         Int                     @map("user_id")
+  name           String
+  description    String?
+  groupId        String                  @map("group_id")
+  targetRole     String                  @map("target_role")
+  passScore      Int                     @default(70) @map("pass_score")
+  createdAt      DateTime                @default(now()) @map("created_at")
+  updatedAt      DateTime                @updatedAt @map("updated_at")
+  primaryColor   String                  @default("#ff4b6e") @map("primary_color")
+  secondaryColor String                  @default("#1f2933") @map("secondary_color")
+  questionsJson  String                  @map("questions_json")
+  styleJson      String?                 @map("style_json")
+  user           User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  submissions    ApplicationSubmission[]
+
+  @@index([userId])
+  @@index([groupId])
+  @@map("applications")
+}
+
+model RankCenter {
+  id         String   @id @default(uuid())
+  userId     Int      @map("user_id")
+  name       String
+  groupId    String   @map("group_id")
+  universeId String?  @map("universe_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  ranksJson  String   @map("ranks_json")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([groupId])
+  @@map("rank_centers")
+}
+
+model ApplicationSubmission {
+  id              String      @id @default(uuid())
+  applicationId   String      @map("application_id")
+  robloxUserId    String      @map("roblox_user_id")
+  membershipId    String?     @map("membership_id")
+  answersJson     String      @map("answers_json")
+  score           Float
+  maxScore        Float       @map("max_score")
+  passed          Boolean
+  feedback        String?
+  promotionStatus String?     @map("promotion_status")
+  submittedAt     DateTime    @default(now()) @map("submitted_at")
+  application     Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
+  @@index([robloxUserId])
+  @@map("application_submissions")
+}
+
+model PasswordReset {
+  id        String   @id @default(uuid())
+  userId    Int      @map("user_id")
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@map("password_resets")
+}
+
+model EmailVerification {
+  id        String   @id @default(uuid())
+  userId    Int      @map("user_id")
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId])
+  @@map("email_verifications")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    Int      @map("user_id")
+  tokenHash String   @unique @map("token_hash")
+  expiresAt DateTime @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}

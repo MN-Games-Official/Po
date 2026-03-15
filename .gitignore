@@ -1,0 +1,12 @@
+.next
+node_modules
+.env
+.env.local
+.env.production
+dist
+coverage
+playwright-report
+test-results
+prisma/migrations
+*.log
+
